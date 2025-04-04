@@ -1,9 +1,12 @@
+from ast import Return
 from unittest import result
 import numpy as np
 import datetime as dt
 import pandas as pd
+from torch import layout
 import yfinance as yf
 import scipy.optimize as sp
+import plotly.graph_objects as plt
 r_f = 0.
 # Function to fetch and process stock data
 
@@ -91,25 +94,68 @@ def calculatedResults(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5)):
     MaxSR_p = maxSR(r_mean, cov_matrix)
     portfolio_performance(MaxSR_p['x'], r_mean, cov_matrix)
     maxSR_r, maxSR_std = portfolio_performance(MaxSR_p['x'], r_mean, cov_matrix) 
-    maxSR_r = round(maxSR_r*100,2)
-    maxSR_std = round(maxSR_std*100,2)
+    
     maxSR_allocation = pd.DataFrame(MaxSR_p['x'], index=r_mean.index, columns=['allocation'])
     maxSR_allocation.allocation = [round(i*100,1) for i in maxSR_allocation.allocation]
     #for min variance portfolio
     MinVol_p = minVar_p(r_mean, cov_matrix)
     portfolio_performance(MinVol_p['x'], r_mean, cov_matrix)
     MinVol_r, MinVol_std = portfolio_performance(MinVol_p['x'], r_mean, cov_matrix) 
-    MinVol__r = round(MinVol_r*100,2)
-    MinVol_std = round(MinVol_std*100,2)
+    
     MinVol_allocation = pd.DataFrame(MinVol_p['x'], index=r_mean.index, columns=['allocation'])
     MinVol_allocation.allocation = [round(i*100,1) for i in MinVol_allocation.allocation]
     
     efficientList = []
-    targetReturns = np.linspace(MinVol__r, maxSR_r, )
+    targetReturns = np.linspace(MinVol_r, maxSR_r, )
     for target in targetReturns: 
         efficientList.append(EfficientOpt(r_mean, cov_matrix, target)['fun'])
     efficientList = [float(i) for i in efficientList]
-    return float(MinVol_r), float(MinVol_std), MinVol_allocation, float(maxSR_r), float(maxSR_std), maxSR_allocation, efficientList
+    maxSR_r, maxSR_std = round(maxSR_r*100,2), round(maxSR_std*100,2)
+    MinVol__r, MinVol_std = round(MinVol_r*100,2), round(MinVol_std*100,2)
+    #MinVol__r, MinVol_std, maxSR_r, maxSR_std = float(MinVol_r), float(MinVol_std), float(maxSR_r), float(maxSR_std)
+    return MinVol_r, MinVol_std, MinVol_allocation, maxSR_r, maxSR_std, maxSR_allocation, efficientList, targetReturns
 
 print(calculatedResults(r_mean, cov_matrix))
-# print(EfficientOpt(r_mean, cov_matrix, 0.07))
+
+def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5),):
+    MinVol_r, MinVol_std, MinVol_allocation, maxSR_r, maxSR_std, maxSR_allocation, efficientList, targetReturns = calculatedResults(r_mean, cov_matrix, r_f, w_constraint)
+    
+    #maximum sharpe ratio 
+    MaxSharpeRatio = plt.Scatter(
+        name='Maximum Sharpe Ratio', 
+        mode='markers',
+        x=[maxSR_std],
+        y=[maxSR_r],
+        marker=dict(color='red', size=14, line=dict(width=3, color='black'))
+    )
+    MinVol = plt.Scatter(
+        name='Minimum Variance Portfolio', 
+        mode='markers',
+        x=[MinVol_std],
+        y=[MinVol_r],
+        marker=dict(color='green', size=14, line=dict(width=3, color='black'))
+    )
+    EfficientFrontier = plt.Scatter(
+        name='Efficient Frontier', 
+        mode='markers',
+        x=[round(eff_std*100, 2) for eff_std in efficientList],
+        y=[round(target*100,2) for target in targetReturns],
+        line=dict(color='black',width=4, dash='dashdot')
+    )
+    
+    data = [MaxSharpeRatio, MinVol, EfficientFrontier]
+    
+    layout = plt.Layout(
+        title='Portfolio Optimisation using the Efficient frontier',
+        yaxis=dict(title='Annualised Return (%)'),
+        xaxis=dict(title='Annualised Volatility (%)'),
+        showlegend=True,
+        legend=dict(
+            x=0.75, y=0, traceorder='normal', bgcolor='grey', bordercolor = 'black', borderwidth = 1
+        ),
+        width = 1000,
+        height = 800)
+    fig = plt.Figure(data=data, layout=layout)
+    return fig.show()
+
+EF_plot(r_mean, cov_matrix)
