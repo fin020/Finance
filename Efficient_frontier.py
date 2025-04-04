@@ -37,7 +37,7 @@ end_date = dt.datetime.now()
 start_date = end_date - dt.timedelta(days=365)
 
 w = np.array([0.8, 0.1, 0.1])
-w /= np.sum(w)
+
 # Fetch data
 r_mean, cov_matrix = get_data(tickers, start_date, end_date)
 r_p, std_p = portfolio_performance(w, r_mean, cov_matrix)
@@ -59,7 +59,8 @@ def maxSR(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5)):
     return result
 
 def Var_p(w, r_mean, covmatrix):
-    return portfolio_performance(w, r_mean, cov_matrix)[1]
+    std = portfolio_performance(w, r_mean, cov_matrix)[1]
+    return std 
 
 def minVar_p(r_mean, cov_matrix, w_constraint = (0,0.5)):
     "minimise the portfolio variance by changing the asset allocation of the portfolio"
@@ -106,13 +107,13 @@ def calculatedResults(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5)):
     MinVol_allocation.allocation = [round(i*100,1) for i in MinVol_allocation.allocation]
     
     efficientList = []
-    targetReturns = np.linspace(MinVol_r, maxSR_r, )
+    targetReturns = np.linspace(MinVol_r, maxSR_r, 100 )
     for target in targetReturns: 
         efficientList.append(EfficientOpt(r_mean, cov_matrix, target)['fun'])
     efficientList = [float(i) for i in efficientList]
     maxSR_r, maxSR_std = round(maxSR_r*100,2), round(maxSR_std*100,2)
-    MinVol__r, MinVol_std = round(MinVol_r*100,2), round(MinVol_std*100,2)
-    #MinVol__r, MinVol_std, maxSR_r, maxSR_std = float(MinVol_r), float(MinVol_std), float(maxSR_r), float(maxSR_std)
+    MinVol_r, MinVol_std = round(MinVol_r*100,2), round(MinVol_std*100,2)
+    MinVol_r, MinVol_std, maxSR_r, maxSR_std = float(MinVol_r), float(MinVol_std), float(maxSR_r), float(maxSR_std)
     return MinVol_r, MinVol_std, MinVol_allocation, maxSR_r, maxSR_std, maxSR_allocation, efficientList, targetReturns
 
 print(calculatedResults(r_mean, cov_matrix))
@@ -157,5 +158,6 @@ def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5),):
         height = 800)
     fig = plt.Figure(data=data, layout=layout)
     return fig.show()
+
 
 EF_plot(r_mean, cov_matrix)
