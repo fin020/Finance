@@ -4,7 +4,7 @@ import datetime as dt
 import pandas as pd
 import yfinance as yf
 import scipy.optimize as sp
-r_f = 0
+r_f = 0.
 # Function to fetch and process stock data
 
 
@@ -55,7 +55,6 @@ def maxSR(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5)):
                          method='SLSQP', bounds=bounds, constraints=constraints)
     return result
 
-
 def Var_p(w, r_mean, covmatrix):
     return portfolio_performance(w, r_mean, cov_matrix)[1]
 
@@ -72,12 +71,45 @@ def minVar_p(r_mean, cov_matrix, w_constraint = (0,0.5)):
 
 
 
-print(round(r_p*100,2), round(std_p*100,2))
+def EfficientOpt(r_mean, cov_matrix, r_target, w_constraint = (0,0.5)):
+    # for each target we want to optimise portfolio for min variance
+     n_Assets = len(r_mean) 
+     args = (r_mean, cov_matrix)
+     def r_portfolio(w):
+        return portfolio_performance(w, r_mean, cov_matrix)[0]
 
-result = maxSR(r_mean, cov_matrix)
-maxSR, maxW = result['fun'],result['x']
-print(maxSR, maxW)
+     constraints = ({'type': 'eq', 'fun': lambda x: r_portfolio(x) - r_target},
+                    {'type': 'eq', 'fun': lambda x: np.sum(x)-1})
+     bound = w_constraint
+     bounds = tuple(bound for asset in range(n_Assets))
+     result = sp.minimize(Var_p,n_Assets*[1./n_Assets], args=args, 
+                         method='SLSQP', bounds=bounds, constraints=constraints)
+     return result     
 
-minVarResult = minVar_p(r_mean, cov_matrix)
-minVar_p, minVarw = minVarResult['fun'],minVarResult['x']
-print(minVar_p, maxW)
+def calculatedResults(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5)):
+    #for max sharpe ratio portfolio
+    MaxSR_p = maxSR(r_mean, cov_matrix)
+    portfolio_performance(MaxSR_p['x'], r_mean, cov_matrix)
+    maxSR_r, maxSR_std = portfolio_performance(MaxSR_p['x'], r_mean, cov_matrix) 
+    maxSR_r = round(maxSR_r*100,2)
+    maxSR_std = round(maxSR_std*100,2)
+    maxSR_allocation = pd.DataFrame(MaxSR_p['x'], index=r_mean.index, columns=['allocation'])
+    maxSR_allocation.allocation = [round(i*100,1) for i in maxSR_allocation.allocation]
+    #for min variance portfolio
+    MinVol_p = minVar_p(r_mean, cov_matrix)
+    portfolio_performance(MinVol_p['x'], r_mean, cov_matrix)
+    MinVol_r, MinVol_std = portfolio_performance(MinVol_p['x'], r_mean, cov_matrix) 
+    MinVol__r = round(MinVol_r*100,2)
+    MinVol_std = round(MinVol_std*100,2)
+    MinVol_allocation = pd.DataFrame(MinVol_p['x'], index=r_mean.index, columns=['allocation'])
+    MinVol_allocation.allocation = [round(i*100,1) for i in MinVol_allocation.allocation]
+    
+    efficientList = []
+    targetReturns = np.linspace(MinVol__r, maxSR_r, )
+    for target in targetReturns: 
+        efficientList.append(EfficientOpt(r_mean, cov_matrix, target)['fun'])
+    efficientList = [float(i) for i in efficientList]
+    return float(MinVol_r), float(MinVol_std), MinVol_allocation, float(maxSR_r), float(maxSR_std), maxSR_allocation, efficientList
+
+print(calculatedResults(r_mean, cov_matrix))
+# print(EfficientOpt(r_mean, cov_matrix, 0.07))
