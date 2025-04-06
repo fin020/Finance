@@ -7,7 +7,7 @@ from torch import layout
 import yfinance as yf
 import scipy.optimize as sp
 import plotly.graph_objects as plt
-r_f = 0.
+r_f = 0.04
 # Function to fetch and process stock data
 
 
@@ -21,7 +21,7 @@ def get_data(stocks, start, end):
     r = stock_data.pct_change().dropna()    
     r_mean = r.mean()
     cov_matrix = r.cov()  # Computes the covariance matrix for the DataFrame (no argument needed)
-    return r_mean, cov_matrix
+    return r_mean, cov_matrix 
 
 def portfolio_performance(w, r_mean, cov_matrix):
     r_p = np.sum(r_mean * w) * 250 
@@ -30,13 +30,13 @@ def portfolio_performance(w, r_mean, cov_matrix):
 
 
 
-tickers = ['AAPL', 'MSFT', 'GOOG']
+tickers = ['AAPL', 'LLY', 'WMT','MCD']
 
 
 end_date = dt.datetime.now()
 start_date = end_date - dt.timedelta(days=365)
 
-w = np.array([0.8, 0.1, 0.1])
+w = np.array([0.6, 0.1, 0.1, 0.2])
 
 # Fetch data
 r_mean, cov_matrix = get_data(tickers, start_date, end_date)
@@ -143,8 +143,15 @@ def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5),):
         y=[round(target*100,2) for target in targetReturns],
         line=dict(color='black',width=4, dash='dashdot')
     )
+    RiskFree = plt.Scatter(
+        name='Risk Free',
+        mode='markers',
+        x=[0],
+        y=[r_f*100],
+        marker=dict(color='blue', size=10)
+    )
     
-    data = [MaxSharpeRatio, MinVol, EfficientFrontier]
+    data = [MaxSharpeRatio, MinVol, EfficientFrontier, RiskFree]
     
     layout = plt.Layout(
         title='Portfolio Optimisation using the Efficient frontier',
@@ -155,7 +162,7 @@ def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,0.5),):
             x=0.75, y=0, traceorder='normal', bgcolor='grey', bordercolor = 'black', borderwidth = 1
         ),
         width = 1000,
-        height = 800)
+        height = 600)
     fig = plt.Figure(data=data, layout=layout)
     return fig.show()
 
