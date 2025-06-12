@@ -16,10 +16,10 @@ tickers = ['TLT', 'SPY', 'QQQ', 'GLD', 'CL=F']
 w = np.array([0.2,0.2,0.2,0.2,0.2,])
 Time = 1#only accurate for low value of time
 InitialInvestment = 1000000
-alpha = 1
+alpha = 5
 
 end_date = dt.datetime.now()
-start_date = end_date - dt.timedelta(days=1000)
+start_date = end_date - dt.timedelta(days=1250)
 
 #borrowing from Efficient Fronteir we import data:
 def get_data(stocks, start, end):
