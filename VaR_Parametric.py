@@ -41,13 +41,21 @@ r, r_mean, cov = Getdata(Ticker,start_date ,end_date)
 r_p, std_p = Portfolio_Performance(r_mean, cov, weight, Time)
 print(r_p, std_p)
 
-def VaRParametric(r_p, std_p, alpha, InitialInvestment):
+def VaR_Parametric(r_p, std_p, alpha, InitialInvestment):
     VaR = sci.norm.ppf(alpha / 100, r_p * InitialInvestment ,std_p * InitialInvestment)
     return VaR
 
-VaR = VaRParametric(r_p, std_p, alpha, InitialInvestment)
+VaR = VaR_Parametric(r_p, std_p, alpha, InitialInvestment)
 print(VaR)
 
-#def CVaRParametric(VaR, r_p, std_p, alpha, InitialInvestment):
-    
-    
+def CVaR_Parametric(VaR, r_p, std_p, alpha, InitialInvestment):
+    mu = r_p * InitialInvestment
+    sigma = std_p * InitialInvestment
+    z = (VaR -mu) / sigma
+    CVaR = mu - sigma * sci.norm.pdf(z) / (alpha / 100)
+    return CVaR
+
+CVaR = CVaR_Parametric(VaR, r_p, std_p, alpha, InitialInvestment)
+
+print("VaR:", VaR)
+print("CVaR:", CVaR)
