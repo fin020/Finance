@@ -34,8 +34,6 @@ def Portfolio_Performance(r_mean, cov, weight, Time):
     return r_p, std_p
 
 
-
-
 print(Ticker)
 print(weight)
 r, r_mean, cov = Getdata(Ticker,start_date ,end_date)
@@ -75,9 +73,9 @@ fig.add_trace(plt.Scatter(
 ))
 
 fig.add_trace(plt.Scatter(
-    x=np.concatenate([x_tail, x_tail[::-1]]),
-    y=np.concatenate([pdf_tail, np.zeros_like(pdf_tail)]),
-    fill='toself',
+    x=x_tail,
+    y=pdf_tail,
+    fill='tozeroy',
     fillcolor='rgba(255, 0, 0, 0.4)',
     line=dict(color='rgba(255,0,0,0)'),
     name='Tail Area (Worst 5%)'
