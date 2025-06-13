@@ -5,6 +5,7 @@ import yfinance as yf
 import datetime as dt
 import scipy.stats as sci
 import scipy.integrate as integrate
+import plotly.graph_objects as plt
 
 Time = 250
 alpha = 5
@@ -41,21 +42,69 @@ r, r_mean, cov = Getdata(Ticker,start_date ,end_date)
 r_p, std_p = Portfolio_Performance(r_mean, cov, weight, Time)
 print(r_p, std_p)
 
-def VaR_Parametric(r_p, std_p, alpha, InitialInvestment):
-    VaR = sci.norm.ppf(alpha / 100, r_p * InitialInvestment ,std_p * InitialInvestment)
+mu = r_p * InitialInvestment
+sigma = std_p * InitialInvestment
+
+def VaR_Parametric(mu, sigma, alpha):
+    VaR = sci.norm.ppf(alpha / 100, mu ,sigma)
     return VaR
 
-VaR = VaR_Parametric(r_p, std_p, alpha, InitialInvestment)
+VaR = VaR_Parametric(mu, sigma, alpha)
 print(VaR)
 
-def CVaR_Parametric(VaR, r_p, std_p, alpha, InitialInvestment):
-    mu = r_p * InitialInvestment
-    sigma = std_p * InitialInvestment
+def CVaR_Parametric(VaR, mu, sigma, alpha,):
     z = (VaR -mu) / sigma
     CVaR = mu - sigma * sci.norm.pdf(z) / (alpha / 100)
     return CVaR
 
-CVaR = CVaR_Parametric(VaR, r_p, std_p, alpha, InitialInvestment)
+CVaR = CVaR_Parametric(VaR, mu, sigma, alpha)
 
 print("VaR:", VaR)
 print("CVaR:", CVaR)
+
+x = np.linspace(mu - 4 * sigma, mu + 4 * sigma, 1000)
+pdf = sci.norm.pdf(x,mu, sigma)
+
+x_tail = x[x <= VaR]
+pdf_tail = sci.norm.pdf(x_tail, mu, sigma)
+
+fig = plt.Figure()
+
+fig.add_trace(plt.Scatter(
+    x=x, y=pdf, mode='lines', name='Portfolio PDF', line=dict(color='blue')
+))
+
+fig.add_trace(plt.Scatter(
+    x=np.concatenate([x_tail, x_tail[::-1]]),
+    y=np.concatenate([pdf_tail, np.zeros_like(pdf_tail)]),
+    fill='toself',
+    fillcolor='rgba(255, 0, 0, 0.4)',
+    line=dict(color='rgba(255,0,0,0)'),
+    name='Tail Area (Worst 5%)'
+))
+
+fig.add_trace(plt.Scatter(
+    x=[VaR, VaR],
+    y=[0, sci.norm.pdf(VaR, mu, sigma)],
+    mode='lines',
+    name=f'VaR (5%)  =  {VaR:.2f}',
+    line=dict(color='red', dash='dash')    
+))
+fig.add_trace(plt.Scatter(
+    x=[CVaR, CVaR],
+    y=[0, sci.norm.pdf(CVaR, mu, sigma)],
+    mode='lines',
+    name=f'CVaR (5%)  =  {CVaR:.2f}',
+    line=dict(color='purple', dash='dash')    
+))
+
+fig.update_layout(
+    title = 'Portfolio VaR and CVaR based on Parametric assumptions',
+    xaxis_title = 'P/L',
+    yaxis_title = 'Probability Density',
+    template='simple_white',
+    width=800,
+    height=500,
+    legend=dict(x=0.7, y=0.95)
+)
+fig.show()
