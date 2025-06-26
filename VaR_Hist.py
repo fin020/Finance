@@ -5,7 +5,6 @@ import numpy as np
 import datetime as dt
 import yfinance as yf
 import plotly.graph_objects as plt
-import pandas as pd
 import scipy.stats as sci
 
 
