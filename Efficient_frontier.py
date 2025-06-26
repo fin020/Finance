@@ -1,9 +1,7 @@
-from ast import Return
-from unittest import result
+
 import numpy as np
 import datetime as dt
 import pandas as pd
-from torch import layout
 import yfinance as yf
 import scipy.optimize as sp
 import plotly.graph_objects as plt
