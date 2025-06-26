@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd 
 import numpy as np
 import datetime as dt
-import matplotlib.pyplot as plt 
+
 
 end = dt.datetime.today()
 start = end - dt.timedelta(1250)
