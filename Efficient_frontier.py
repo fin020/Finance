@@ -23,21 +23,6 @@ def portfolio_performance(w, r_mean, cov_matrix):
     std_p = np.sqrt(np.dot(w.T,np.dot(cov_matrix, w)) ) * np.sqrt (250)
     return r_p, std_p 
 
-
-
-tickers = ['TLT', 'SPY', 'QQQ', 'GLD', 'CL=F']
-
-
-end_date = dt.datetime.now()
-start_date = end_date - dt.timedelta(days=365)
-
-w = np.array([0.4, 0.1, 0.1, 0.2,0.2])
-
-# Fetch data
-r_mean, cov_matrix = get_data(tickers, start_date, end_date)
-r_p, std_p = portfolio_performance(w, r_mean, cov_matrix)
-
-
 def negSR(w, r_mean, cov_matrix, r_f=r_f):
     r_p, std_p = portfolio_performance(w, r_mean, cov_matrix)
     return -(r_p-r_f)/std_p
@@ -111,7 +96,6 @@ def calculatedResults(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,1)):
     MinVol_r, MinVol_std, maxSR_r, maxSR_std = float(MinVol_r), float(MinVol_std), float(maxSR_r), float(maxSR_std)
     return MinVol_r, MinVol_std, MinVol_allocation, maxSR_r, maxSR_std, maxSR_allocation, efficientList, targetReturns
 
-print(calculatedResults(r_mean, cov_matrix))
 
 def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,1)):
     MinVol_r, MinVol_std, MinVol_allocation, maxSR_r, maxSR_std, maxSR_allocation, efficientList, targetReturns = calculatedResults(r_mean, cov_matrix, r_f, w_constraint)
@@ -170,5 +154,18 @@ def EF_plot(r_mean, cov_matrix, r_f=r_f, w_constraint = (0,1)):
     fig = plt.Figure(data=data, layout=layout)
     return fig.show()
 
-EF_plot(r_mean, cov_matrix)
 
+if __name__ == '__main__':
+    tickers = ['TLT', 'SPY', 'QQQ', 'GLD', 'CL=F']
+
+
+    end_date = dt.datetime.now()
+    start_date = end_date - dt.timedelta(days=365)
+
+    w = np.array([0.4, 0.1, 0.1, 0.2,0.2])
+
+    # Fetch data
+    r_mean, cov_matrix = get_data(tickers, start_date, end_date)
+    r_p, std_p = portfolio_performance(w, r_mean, cov_matrix)
+    print(calculatedResults(r_mean, cov_matrix))
+    EF_plot(r_mean, cov_matrix)
