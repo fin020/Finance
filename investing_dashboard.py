@@ -11,11 +11,32 @@ from VaR_Parametric import VaR_Parametric, CVaR_Parametric, Create_VaR_Plot
 st.set_page_config(page_title='Personal investment dashboard',layout='wide')
 st.title('Personal investment dashboard')
 st.markdown('---')
-InitialInvestment = st.number_input('Enter the ($) initial investment in your portfolio:')
-Tickers_input = st.text_input('Enter tickers for your portfolio:', 'QQQ, SPY, TLT')
-Weights_input = st.text_input('Please enter the respective weightings:','0.4, 0.4, 0.2')    
-Start_date = st.date_input('Start date',value =dt.datetime.now() - dt.timedelta(1), max_value=dt.datetime.now() - dt.timedelta(1))
+InitialInvestment = st.sidebar.number_input('($)initial investment:')
+Tickers_input = st.sidebar.text_input(
+    'Asset Tickers', 
+    'QQQ, SPY, TLT',
+    help="Enter comma-separated ticker symbols."
+)
+Weights_input = st.sidebar.text_input(
+    'weightings:',
+    '0.4, 0.4, 0.2',
+    help='Enter comma-separated values that sum to 1.'
+)    
+Start_date = st.sidebar.date_input(
+    'Start date',
+    value =dt.datetime.now() - dt.timedelta(1),
+    max_value=dt.datetime.now() - dt.timedelta(1),
+    help='Historical data start date'
+)
 end_date = dt.datetime.now()
+st.sidebar.subheader('Risk Analysis Parameters:')
+confidence_level = st.sidebar.selectbox(
+    'VaR Confidence Level (%)',
+    [90,95,99,99.5],
+    index=1,
+    help='Confidence level for Value at Risk Calculation'
+)
+alpha = 100 - confidence_level
 if(st.button('Submit')):
     try:
         Tickers = [ticker.strip().upper() for ticker in Tickers_input.split(",")]
