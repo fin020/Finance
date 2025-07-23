@@ -77,7 +77,7 @@ def Create_VaR_Plot(mu, sigma, VaR, CVaR, alpha):
         height=500,
             legend=dict(x=0.7, y=0.95)
         )
-        return fig
+        return fig.show()
 
 if __name__ == '__main__':
     Time = 250
@@ -104,4 +104,4 @@ if __name__ == '__main__':
 
     print(f"VaR ({100-alpha}%):", VaR)
     print(f"CVaR ({100-alpha}%):", CVaR)
-    
+    Create_VaR_Plot(mu, sigma, VaR, CVaR, alpha)
